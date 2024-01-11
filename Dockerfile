@@ -1,6 +1,7 @@
 
-FROM docker.io/library/amazonlinux:latest as builder
-ENV PYTHON_VERSION=3.9.18
+FROM docker.io/library/amazonlinux:2023 as builder
+
+ENV PYTHON_VERSION=3.12.1
 
 WORKDIR /root
 
@@ -10,11 +11,11 @@ RUN yum update -y && \
     tar -xzf python.tgz && \
     mv Python-${PYTHON_VERSION} python && \
     cd python && \
-    ./configure --with-ensurepip=install && \
-    make
+    ./configure --enable-optimizations --prefix /opt/python && \
+    make install
 
-FROM docker.io/library/amazonlinux:latest
+FROM docker.io/library/amazonlinux:2023
 
-WORKDIR /root
-COPY --from=builder /root/python /opt/python
-CMD /opt/python/python
+COPY --from=builder /opt/python /opt/python
+
+ENTRYPOINT [ "/opt/python/bin/python3" ]
